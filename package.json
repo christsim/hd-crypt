@@ -1,8 +1,8 @@
 {
-  "name": "hdencrypt",
+  "name": "hd-encrypt",
   "version": "1.0.0",
   "description": "",
-  "main": "src/hdEncrypt.js",
+  "main": "src/hd-crypt.js",
   "scripts": {
     "test": "mocha"
   },
