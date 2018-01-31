@@ -13,7 +13,6 @@ Sender's private details, not shared with anyone.  Public xpub is shared with re
 
 Recipient's details:
 ```
-        // 2
         var xprv2 = 'xprv9s21ZrQH143K3KFb122nLqnzgTLRsejV2GP84HrPWmvaPMzdMwXZ8VGTY3GAWrND2fYg9neHeYvANN58XjiJoAJ2UhxosTzBqzz4nmMchR1';
         var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
 ```
@@ -30,3 +29,13 @@ Recipient generates shared key:
 
 shared1 should equal shared2
 
+Now the sender can encrypt
+```
+        var text = "Hello World";
+        var cipherText = hdEncrypt.encrypt(shared1, text);
+```
+
+and the recipient can decrypt
+```
+        var decryptedText = hdEncrypt.decrypt(shared2, cipherText);
+```
