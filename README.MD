@@ -1,7 +1,7 @@
-*** HD Encrypt
+***HD Crypt
 
 Library to help derive shared keys between two parties.
-These keys can then be used to encrypt data
+These keys can then be used to encrypt and decrypt data
 
 Usage:
 
@@ -19,12 +19,12 @@ Recipient's details:
 
 Sender generates shared key:
 ```
-        var shared1 = hdEncrypt.genSharedKey(xprv1, xpub2, "m/0/0/1/2/3");
+        var shared1 = hdCrypt.genSharedKey(xprv1, xpub2, "m/0/0/1/2/3");
 ```
 
 Recipient generates shared key:
 ```        
-        var shared2 = hdEncrypt.genSharedKey(xprv2, xpub1, "m/0/0/1/2/3");
+        var shared2 = hdCrypt.genSharedKey(xprv2, xpub1, "m/0/0/1/2/3");
 ```
 
 shared1 should equal shared2
@@ -32,10 +32,10 @@ shared1 should equal shared2
 Now the sender can encrypt
 ```
         var text = "Hello World";
-        var cipherText = hdEncrypt.encrypt(shared1, text);
+        var cipherText = hdCrypt.encrypt(shared1, text);
 ```
 
 and the recipient can decrypt
 ```
-        var decryptedText = hdEncrypt.decrypt(shared2, cipherText);
+        var decryptedText = hdCrypt.decrypt(shared2, cipherText);
 ```
