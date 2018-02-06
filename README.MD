@@ -1,4 +1,4 @@
-***HD Crypt
+# HD Crypt
 
 Library to help derive shared keys between two parties.
 These keys can then be used to encrypt and decrypt data
