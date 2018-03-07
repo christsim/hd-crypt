@@ -19,6 +19,22 @@ describe('hdCrypt', () => {
         assert.equal(cipherData.hmacPath, 'm/0/1/2/3/' + hdCrypt.randomPathIndex + '/1/0');
     });
 
+    it('encrypting twice results in different ciphers', () => {
+        var mnemonic = bip39.generateMnemonic();
+        var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
+        var hdCrypt = HDCrypt.createFromMnemonic(mnemonic, xpub2, 'm/0/1/2/3');
+
+        var text = 'Hello World!!!';
+        var cipherData1 = hdCrypt.encrypt(text);
+        var cipherData2 = hdCrypt.encrypt(text);
+        var clearText1 = hdCrypt.decrypt(cipherData1);
+        var clearText2 = hdCrypt.decrypt(cipherData2);
+
+        assert.equal(text, clearText1);
+        assert.equal(text, clearText2);
+        assert.notEqual(cipherData1.cipherText, cipherData2.cipherText);
+    });
+
     it('can encrypt/decrypt from xpriv', () => {
         var xpriv1 = 'xprv9s21ZrQH143K38D1mL3XTj2oMD87dmqDPSMKG9PqCWKCFYcPERzdtynK1QqYqg187VfEudGzSM5wCynhWkGLb3WLDgiziybKxKmPjz6p5Bq';
         var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
