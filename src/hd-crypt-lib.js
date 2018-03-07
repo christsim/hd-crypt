@@ -42,9 +42,9 @@ function genSharedKey(xprv, xpub, path) {
  * @param {*} key 
  * @param {*} cipherText 
  */
-function hmac(key, cipherText) {
+function hmac(key, ...args) {
     const hmac = crypto.createHmac('sha256', key);
-    hmac.update(cipherText);
+    args.forEach(a => hmac.update(a));
     return hmac.digest('hex');
 }
 

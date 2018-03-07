@@ -42,7 +42,7 @@ class HDCrypt {
 
         const hmacPath = this.rootPath + HMAC_PATH_ROOT + pathIndex;
         const hmacSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, hmacPath);
-        const hmac = hdCryptLib.hmac(hmacSharedKey, cipherText); // hmac the cipher text
+        const hmac = hdCryptLib.hmac(hmacSharedKey, cipherText, cryptPath, hmacPath); // hmac the cipher text
 
         return {
             cipherText,
@@ -56,7 +56,7 @@ class HDCrypt {
         const { cipherText, hmac, cryptPath, hmacPath } = cipherData;
 
         const hmacSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, hmacPath);
-        const hmacNew = hdCryptLib.hmac(hmacSharedKey, cipherText); // hmac the cipher text
+        const hmacNew = hdCryptLib.hmac(hmacSharedKey, cipherText, cryptPath, hmacPath); // hmac the cipher text
         if(hmacNew != hmac) {
             throw Error('Hmac does not match');
         }
