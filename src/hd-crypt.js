@@ -29,15 +29,15 @@ function genSharedKey(xprv, xpub, path) {
 }
 
 /**
+ * Don't reuse the keys - even for different uses.
  * 
  * @param {*} key 
- * @param {*} text 
+ * @param {*} cipherText 
  */
-function encrypt(key, text) {
-    var cipher = crypto.createCipher(algorithm, key);
-    var crypted = cipher.update(text, 'utf8', 'hex');
-    crypted += cipher.final('hex');;
-    return crypted;
+function hmac(key, cipherText) {
+    const hmac = crypto.createHmac('sha256', key);
+    hmac.update(cipherText);
+    return hmac.digest('hex');
 }
 
 /**
@@ -45,15 +45,30 @@ function encrypt(key, text) {
  * @param {*} key 
  * @param {*} text 
  */
-function decrypt(key, text) {
+function encrypt(key, text) {
+    var cipher = crypto.createCipher(algorithm, key);
+    var crypted = cipher.update(text, 'utf8', 'hex');
+    crypted += cipher.final('hex');
+
+    return crypted;
+}
+
+/**
+ * 
+ * @param {*} key 
+ * @param {*} cipherText 
+ */
+function decrypt(key, cipherText) {
     var decipher = crypto.createDecipher(algorithm, key);
-    var dec = decipher.update(text, 'hex', 'utf8')
+    var dec = decipher.update(cipherText, 'hex', 'utf8')
     dec += decipher.final('utf8');
+
     return dec;
 }
 
 module.exports = {
     encrypt,
     decrypt,
-    genSharedKey
+    genSharedKey,
+    hmac
 }
