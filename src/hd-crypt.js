@@ -1,74 +1,75 @@
-var EC = require('elliptic').ec;
-var ec = new EC('secp256k1');
-var crypto = require('crypto');
 var HDKey = require('hdkey');
+var bip39 = require('bip39');
+var crypto = require('crypto');
+var hdCryptLib = require('./hd-crypt-lib.js');
 
-// symmetric encryption algorithm
-var algorithm = 'aes-256-ctr';
+const CRYPT_PATH_ROOT = '/0/';
+const HMAC_PATH_ROOT = '/1/';
 
-/**
- * Generate a key from sender's private key and
- * the recipient's public key.
- * First derive both hd keys with the path provided
- * 
- * The reverse (my public and the recipients private)
- * will also generate the same key
- * 
- */
-function genSharedKey(xprv, xpub, path) {
-    //derive from path
-    var derivedHDPrivateKey = HDKey.fromExtendedKey(xprv).derive(path);
-    var derivedHDPublicKey = HDKey.fromExtendedKey(xpub).derive(path);
-
-    // convert to ec key
-    var privateKey = ec.keyFromPrivate(derivedHDPrivateKey.privateKey.toString('hex'), 'hex');
-    var publicKey = ec.keyFromPublic(derivedHDPublicKey.publicKey.toString('hex'), 'hex');
-
-    // derive shared key
-    return privateKey.derive(publicKey.getPublic()).toString(16);
+function createXPriv(mnemonic) {
+    var hdkey = HDKey.fromMasterSeed(bip39.mnemonicToSeedHex(mnemonic));
+    return hdkey.toJSON().xpriv;
 }
 
-/**
- * Don't reuse the keys - even for different uses.
- * 
- * @param {*} key 
- * @param {*} cipherText 
- */
-function hmac(key, cipherText) {
-    const hmac = crypto.createHmac('sha256', key);
-    hmac.update(cipherText);
-    return hmac.digest('hex');
+function createFromMnemonic(mnemonic, xpub, rootPath = 'm/0/1') {
+    return new HDCrypt(createXPriv(mnemonic), xpub, rootPath);
 }
 
-/**
- * 
- * @param {*} key 
- * @param {*} text 
- */
-function encrypt(key, text) {
-    var cipher = crypto.createCipher(algorithm, key);
-    var crypted = cipher.update(text, 'utf8', 'hex');
-    crypted += cipher.final('hex');
-
-    return crypted;
+function createFromXpriv(xpriv, xpub, rootPath = 'm/0/1') {
+    return new HDCrypt(xpriv, xpub, rootPath);
 }
 
-/**
- * 
- * @param {*} key 
- * @param {*} cipherText 
- */
-function decrypt(key, cipherText) {
-    var decipher = crypto.createDecipher(algorithm, key);
-    var dec = decipher.update(cipherText, 'hex', 'utf8')
-    dec += decipher.final('utf8');
+class HDCrypt {
 
-    return dec;
+    constructor(xpriv, xpub, rootPath) {
+        this.xpriv = xpriv;
+        this.xpub = xpub;
+        this.rootPath = rootPath.toString().replace(/\/$/, "");    // remove trailing slash
+
+        // get a radom path for this iteration
+        this.randomPathIndex = crypto.randomBytes(3).readUIntBE(0, 3);
+        this.rootPath += '/' + this.randomPathIndex;
+
+        this.pathIndex = 0;
+    }
+
+    encrypt(text) {
+        const pathIndex = this.pathIndex++;
+
+        const cryptPath = this.rootPath + CRYPT_PATH_ROOT + pathIndex;
+        const cryptSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, cryptPath);
+        const cipherText = hdCryptLib.encrypt(cryptSharedKey, text);
+
+        const hmacPath = this.rootPath + HMAC_PATH_ROOT + pathIndex;
+        const hmacSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, hmacPath);
+        const hmac = hdCryptLib.hmac(hmacSharedKey, cipherText); // hmac the cipher text
+
+        return {
+            cipherText,
+            hmac,
+            cryptPath,
+            hmacPath
+        };
+    }
+
+    decrypt(cipherData) {
+        const { cipherText, hmac, cryptPath, hmacPath } = cipherData;
+
+        const hmacSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, hmacPath);
+        const hmacNew = hdCryptLib.hmac(hmacSharedKey, cipherText); // hmac the cipher text
+        if(hmacNew != hmac) {
+            throw Error('Hmac does not match');
+        }
+        
+        const cryptSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, cryptPath);
+        const clearText = hdCryptLib.decrypt(cryptSharedKey, cipherText);
+
+        return clearText;
+    }
+
 }
 
 module.exports = {
-    encrypt,
-    decrypt,
-    genSharedKey,
-    hmac
+    createFromMnemonic,
+    createFromXpriv
 }
