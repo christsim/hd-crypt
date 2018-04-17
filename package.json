@@ -1,7 +1,7 @@
 {
   "name": "hd-crypt",
   "version": "1.0.0",
-  "description": "",
+  "description": "Asymmetrically encrypt text using a shared key generated with hierarchical deterministic xpub and xpriv keys.",
   "main": "src/hd-crypt.js",
   "scripts": {
     "test": "mocha"
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "elliptic": "^6.4.0",
-    "hdkey": "^0.7.1"
+    "hdkey": "^0.7.1",
+    "npm": "^5.8.0"
   }
 }
