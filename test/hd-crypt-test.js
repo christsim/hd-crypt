@@ -15,16 +15,52 @@ describe('hdCrypt', () => {
         var clearText = hdCrypt.decrypt(cipherData);
 
         assert.equal(text, clearText);
-        assert.equal(cipherData.cryptPath, 'm/0/1/2/3/' + hdCrypt.randomPathIndex + '/0/0');
-        assert.equal(cipherData.hmacPath, 'm/0/1/2/3/' + hdCrypt.randomPathIndex + '/1/0');
+        assert.equal(cipherData.cryptPath, 'm/0/1/2/3' + hdCrypt.randomPathIndex + '/0/0');
+        assert.equal(cipherData.hmacPath, 'm/0/1/2/3' + hdCrypt.randomPathIndex + '/1/0');
     });
 
+    it('can encrypt/decrypt from mnemonic using random path', () => {
+        var mnemonic = bip39.generateMnemonic();
+        var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
+        var hdCrypt = HDCrypt.createFromMnemonic(mnemonic, xpub2, 'm/0/1/2/3', { useRandomPath: true });
+
+        var text = 'Hello World!!!';
+        var cipherData = hdCrypt.encrypt(text);
+        var clearText = hdCrypt.decrypt(cipherData);
+
+        assert.equal(text, clearText);
+        assert.equal(cipherData.cryptPath, 'm/0/1/2/3' + hdCrypt.randomPathIndex + '/0/0');
+        assert.equal(cipherData.hmacPath, 'm/0/1/2/3' + hdCrypt.randomPathIndex + '/1/0');
+    });    
+
+    it('can encrypt/decrypt from mnemonic using timestamp', () => {
+        var mnemonic = bip39.generateMnemonic();
+        var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
+        var hdCrypt = HDCrypt.createFromMnemonic(mnemonic, xpub2, 'm/0/1/2/3', { useTimeBase: true });
+
+        var text = 'Hello World!!!';
+        var cipherData = hdCrypt.encrypt(text);
+        var clearText = hdCrypt.decrypt(cipherData);
+
+        assert.equal(text, clearText);
+    });        
+
+    it('can fail encrypt/decrypt from mnemonic using timestamp', () => {
+        var mnemonic = bip39.generateMnemonic();
+        var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
+        var hdCrypt = HDCrypt.createFromMnemonic(mnemonic, xpub2, 'm/0/1/2/3', { useTimeBase: true, expiryTimeMs: 0 });
+
+        var text = 'Hello World!!!';
+        var cipherData = hdCrypt.encrypt(text);
+        assert.throws(() => hdCrypt.decrypt(cipherData), Error, "Encrypted message expired");
+    });        
+    
     it('encrypting twice results in different ciphers', () => {
         var mnemonic = bip39.generateMnemonic();
         var xpub2 = 'xpub661MyMwAqRbcFoL473ZnhyjjEVAvH7TLPVJirgG157TZGAKmuUqogHawPJUcg5KZMTKK2hpB8vMYUL9rFuLy5ZSAgndyNUde9723wRZ1Lq8';
         var hdCrypt = HDCrypt.createFromMnemonic(mnemonic, xpub2, 'm/0/1/2/3');
 
-        var text = 'Hello World!!!';
+        var text = 'Hello World!!! BYE BYE';
         var cipherData1 = hdCrypt.encrypt(text);
         var cipherData2 = hdCrypt.encrypt(text);
         var clearText1 = hdCrypt.decrypt(cipherData1);
@@ -79,8 +115,8 @@ describe('hdCrypt', () => {
         var cipherData1 = hdCrypt1.encrypt(text1);
         var cipherData2 = hdCrypt1.encrypt(text2);
 
-        assert.equal(cipherData1.cryptPath, 'm/0/1/2/3/' + hdCrypt1.randomPathIndex + '/0/0');
-        assert.equal(cipherData2.cryptPath, 'm/0/1/2/3/' + hdCrypt1.randomPathIndex + '/0/1');
+        assert.equal(cipherData1.cryptPath, 'm/0/1/2/3' + hdCrypt1.randomPathIndex + '/0/0');
+        assert.equal(cipherData2.cryptPath, 'm/0/1/2/3' + hdCrypt1.randomPathIndex + '/0/1');
 
         var clearText1 = hdCrypt2.decrypt(cipherData1);
         var clearText2 = hdCrypt2.decrypt(cipherData2);
