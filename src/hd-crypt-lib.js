@@ -54,11 +54,17 @@ function hmac(key, ...args) {
  * @param {*} text 
  */
 function encrypt(key, text) {
-    var cipher = crypto.createCipher(algorithm, key);
-    var crypted = cipher.update(text, 'utf8', 'hex');
-    crypted += cipher.final('hex');
+    var iv = crypto.randomBytes(16);
+    var cipher = crypto.createCipheriv(algorithm, new Buffer(key, 'hex'), iv);
+    var cipherText = cipher.update(text, 'utf8', 'hex');
+    cipherText += cipher.final('hex');
 
-    return crypted;
+    var cipherData = new Buffer(JSON.stringify({
+        cipherText,
+        iv: iv.toString('hex')
+    })).toString('hex');
+
+    return cipherData;
 }
 
 /**
@@ -66,8 +72,10 @@ function encrypt(key, text) {
  * @param {*} key 
  * @param {*} cipherText 
  */
-function decrypt(key, cipherText) {
-    var decipher = crypto.createDecipher(algorithm, key);
+function decrypt(key, cipherData) {
+    var { cipherText, iv } = JSON.parse(Buffer.from(cipherData, 'hex').toString('utf8'))
+
+    var decipher = crypto.createDecipheriv(algorithm, new Buffer(key, 'hex'), new Buffer(iv, 'hex'));
     var dec = decipher.update(cipherText, 'hex', 'utf8')
     dec += decipher.final('utf8');
 
