@@ -1,6 +1,6 @@
 {
   "name": "hd-crypt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Asymmetrically encrypt text using a shared key generated with hierarchical deterministic xpub and xpriv keys.",
   "main": "src/hd-crypt.js",
   "scripts": {
