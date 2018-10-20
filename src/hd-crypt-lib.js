@@ -33,7 +33,7 @@ function genSharedKey(xprv, xpub, path) {
     var publicKey = ec.keyFromPublic(derivedHDPublicKey.publicKey.toString('hex'), 'hex');
 
     // derive shared key
-    return privateKey.derive(publicKey.getPublic()).toString(16);
+    return privateKey.derive(publicKey.getPublic()).toString(16).padStart(64, '0');
 }
 
 /**
