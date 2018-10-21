@@ -1,5 +1,3 @@
-var HDKey = require('hdkey');
-var bip39 = require('bip39');
 var crypto = require('crypto');
 var hdCryptLib = require('./hd-crypt-lib.js');
 var { pathFromInt, pathToInt } = require('./path-to-int');
@@ -9,13 +7,8 @@ const CRYPT_PATH_ROOT = '/0/';
 const HMAC_PATH_ROOT = '/1/';
 const IV_PATH_ROOT = '/2/';
 
-function createXPriv(mnemonic) {
-    var hdkey = HDKey.fromMasterSeed(bip39.mnemonicToSeedHex(mnemonic));
-    return hdkey.toJSON().xpriv;
-}
-
 function createFromMnemonic(mnemonic, xpub, rootPath = 'm/0/1', opts) {
-    return new HDCrypt(createXPriv(mnemonic), xpub, rootPath, opts);
+    return new HDCrypt(hdCryptLib.createXPrv(mnemonic), xpub, rootPath, opts);
 }
 
 function createFromXpriv(xpriv, xpub, rootPath = 'm/0/1', opts) {
@@ -31,6 +24,7 @@ class HDCrypt {
         this.opts = opts;
         this.usedHMacPathIndices = new Set();
         this.usedCryptPathIndices = new Set();
+        this.usedIVPathIndices = new Set();
 
         // get a random path for this iteration
         if(opts.useRandomPath) {
@@ -60,7 +54,7 @@ class HDCrypt {
         const cryptSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, cryptPath);
 
         // gen iv
-        const ivPath = this.root + IV_PATH_ROOT + pathIndex + timePath;
+        const ivPath = this.rootPath + IV_PATH_ROOT + pathIndex + timePath;
         const iv = hdCryptLib.genSharedKey(this.xpriv, this.xpub, ivPath).substr(0, 32);
 
         // encrypt
@@ -88,6 +82,7 @@ class HDCrypt {
 
         this.validate(hmacPath, this.rootPath + HMAC_PATH_ROOT, this.usedHMacPathIndices);
         this.validate(cryptPath, this.rootPath + CRYPT_PATH_ROOT, this.usedCryptPathIndices);
+        this.validate(ivPath, this.rootPath + IV_PATH_ROOT, this.usedIVPathIndices);
 
         const hmacSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, hmacPath);
         const hmacNew = hdCryptLib.hmac(hmacSharedKey, cipherText, cryptPath, hmacPath); // hmac the cipher text

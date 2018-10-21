@@ -2,7 +2,6 @@ var assert = require('assert');
 
 var HDCrypt = require('../src/hd-crypt.js');
 var bip39 = require('bip39');
-var HDKey = require('hdkey');
 
 describe('hdCrypt', () => {
     it('can encrypt/decrypt from mnemonic', () => {

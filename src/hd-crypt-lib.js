@@ -2,6 +2,7 @@ var EC = require('elliptic').ec;
 var ec = new EC('secp256k1');
 var crypto = require('crypto');
 var HDKey = require('hdkey');
+var bip39 = require('bip39');
 
 // symmetric encryption algorithm
 var algorithm = 'aes-256-ctr';
@@ -81,9 +82,20 @@ function decrypt(key, iv, cipherText) {
     return dec;
 }
 
+/**
+ * create the master xprv from a mnemonic
+ * 
+ * @param {*} mnemonic - the 12/24 words to generate the xprv from
+ */
+function createXPrv(mnemonic) {
+    var hdkey = HDKey.fromMasterSeed(bip39.mnemonicToSeedHex(mnemonic));
+    return hdkey.toJSON().xpriv;
+}
+
 module.exports = {
     encrypt,
     decrypt,
     genSharedKey,
-    hmac
+    hmac,
+    createXPrv
 }
