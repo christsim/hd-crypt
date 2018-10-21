@@ -6,14 +6,13 @@
   "scripts": {
     "test": "mocha"
   },
-  "author": "",
+  "author": "Chris Tsimogiannis",
   "license": "ISC",
   "devDependencies": {
-    "bip39": "^2.5.0"
   },
   "dependencies": {
-    "elliptic": "^6.4.0",
-    "hdkey": "^0.7.1",
-    "npm": "^5.8.0"
+    "elliptic": "^6.4.1",
+    "hdkey": "^1.1.0",
+    "bip39": "^2.5.0"
   }
 }
