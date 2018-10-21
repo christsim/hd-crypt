@@ -34,10 +34,14 @@ describe('hdCryptLib', () => {
         var shared2 = hdCryptLib.genSharedKey(xprv2, xpub1, "m/0/0/1/2/3");
         assert.equal(shared1, '74fbcc3f2e02325a0643a40f4316b0df2a1ae1cf9e49aae26b6c0ce4ba13d176');
         assert.equal(shared2, '74fbcc3f2e02325a0643a40f4316b0df2a1ae1cf9e49aae26b6c0ce4ba13d176');
+
+        var sharedIV1 = hdCryptLib.genSharedKey(xprv1, xpub2, "m/0/2/1/2/3").substr(0, 32);
+        var sharedIV2 = hdCryptLib.genSharedKey(xprv2, xpub1, "m/0/2/1/2/3").substr(0, 32);
+        assert.equal(sharedIV1, sharedIV2);
         
         var text = "Hello World.  Hello World.  Hello World.  Hello World.  Hello World.  Hello World.";
-        var cipher = hdCryptLib.encrypt(shared1, text);
-        var decryptedText = hdCryptLib.decrypt(shared2, cipher);
+        var cipher = hdCryptLib.encrypt(shared1, sharedIV1, text);
+        var decryptedText = hdCryptLib.decrypt(shared2, sharedIV2, cipher);
 
         assert.equal(text, decryptedText);
     });

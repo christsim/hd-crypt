@@ -7,6 +7,7 @@ var { pathFromInt, pathToInt } = require('./path-to-int');
 // the sub paths used for encryption and hmacing
 const CRYPT_PATH_ROOT = '/0/';
 const HMAC_PATH_ROOT = '/1/';
+const IV_PATH_ROOT = '/2/';
 
 function createXPriv(mnemonic) {
     var hdkey = HDKey.fromMasterSeed(bip39.mnemonicToSeedHex(mnemonic));
@@ -42,6 +43,10 @@ class HDCrypt {
         this.pathIndex = 0;
     }
 
+    /**
+     * 
+     * @param {*} text - the clear text to encrypt
+     */
     encrypt(text) {
         var timePath = "";
         if(this.opts.useTimeBase) {
@@ -50,9 +55,16 @@ class HDCrypt {
 
         const pathIndex = this.pathIndex++;
 
+        // gen key
         const cryptPath = this.rootPath + CRYPT_PATH_ROOT + pathIndex + timePath;
         const cryptSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, cryptPath);
-        const cipherText = hdCryptLib.encrypt(cryptSharedKey, text);
+
+        // gen iv
+        const ivPath = this.root + IV_PATH_ROOT + pathIndex + timePath;
+        const iv = hdCryptLib.genSharedKey(this.xpriv, this.xpub, ivPath).substr(0, 32);
+
+        // encrypt
+        const cipherText = hdCryptLib.encrypt(cryptSharedKey, iv, text);
 
         const hmacPath = this.rootPath + HMAC_PATH_ROOT + pathIndex + timePath;
         const hmacSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, hmacPath);
@@ -62,12 +74,17 @@ class HDCrypt {
             cipherText,
             hmac,
             cryptPath,
-            hmacPath
+            hmacPath,
+            ivPath
         };
     }
 
+    /**
+     * 
+     * @param {*} cipherData - the cipher text and iv to decrypt
+     */
     decrypt(cipherData) {
-        const { cipherText, hmac, cryptPath, hmacPath } = cipherData;
+        const { cipherText, hmac, cryptPath, hmacPath, ivPath } = cipherData;
 
         this.validate(hmacPath, this.rootPath + HMAC_PATH_ROOT, this.usedHMacPathIndices);
         this.validate(cryptPath, this.rootPath + CRYPT_PATH_ROOT, this.usedCryptPathIndices);
@@ -79,7 +96,8 @@ class HDCrypt {
         }
         
         const cryptSharedKey = hdCryptLib.genSharedKey(this.xpriv, this.xpub, cryptPath);
-        const clearText = hdCryptLib.decrypt(cryptSharedKey, cipherText);
+        const iv = hdCryptLib.genSharedKey(this.xpriv, this.xpub, ivPath).substr(0, 32);
+        const clearText = hdCryptLib.decrypt(cryptSharedKey, iv, cipherText);
 
         return clearText;
     }

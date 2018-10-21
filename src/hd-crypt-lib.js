@@ -53,16 +53,14 @@ function hmac(key, ...args) {
  * @param {*} key 
  * @param {*} text 
  */
-function encrypt(key, text) {
-    var iv = crypto.randomBytes(16);
-    var cipher = crypto.createCipheriv(algorithm, new Buffer(key, 'hex'), iv);
+function encrypt(key, iv, text) {
+    key = new Buffer(key, 'hex');
+    iv = new Buffer(iv, 'hex');
+    var cipher = crypto.createCipheriv(algorithm, key, iv);
     var cipherText = cipher.update(text, 'utf8', 'hex');
     cipherText += cipher.final('hex');
 
-    var cipherData = new Buffer(JSON.stringify({
-        cipherText,
-        iv: iv.toString('hex')
-    })).toString('hex');
+    var cipherData = cipherText.toString('hex');
 
     return cipherData;
 }
@@ -70,12 +68,13 @@ function encrypt(key, text) {
 /**
  * 
  * @param {*} key 
+ * @param {*} iv 
  * @param {*} cipherText 
  */
-function decrypt(key, cipherData) {
-    var { cipherText, iv } = JSON.parse(Buffer.from(cipherData, 'hex').toString('utf8'))
-
-    var decipher = crypto.createDecipheriv(algorithm, new Buffer(key, 'hex'), new Buffer(iv, 'hex'));
+function decrypt(key, iv, cipherText) {
+    key = new Buffer(key, 'hex');
+    iv = new Buffer(iv, 'hex');
+    var decipher = crypto.createDecipheriv(algorithm, key, iv);
     var dec = decipher.update(cipherText, 'hex', 'utf8')
     dec += decipher.final('utf8');
 
